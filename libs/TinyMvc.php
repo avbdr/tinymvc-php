@@ -117,11 +117,11 @@ class TinyMvc {
      *
      */
     private function processRequest () {
-        // parse url. Strip out script name from the url and params after last ? sign
+        // parse url
         if (PHP_SAPI == "cli")
             $request = ($_SERVER['argv'][1]);
         else
-            $request = preg_replace ("~^({$_SERVER['SCRIPT_NAME']})?(.*)\?.*~", '\2', $_SERVER['REQUEST_URI']);
+            $request = preg_replace ("~/*\?(.+)$~", "", $_SERVER['REQUEST_URI']);
         if (isset ($this->config['routes'])) {
             foreach ($this->config['routes'] as $from => $to)
                 $request = preg_replace("@".$from."@", $to, $request);
