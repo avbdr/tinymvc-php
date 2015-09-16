@@ -35,5 +35,9 @@ class sessionHelper {
         $this->flash = null;
         return $msg;
     }
+
+    public function destroy () {
+        session_destroy();
+    }
 }
 ?>

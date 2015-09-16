@@ -11,7 +11,7 @@ class productsController extends crudController {
 
     public function json ($list = null) {
         $list = product::join('user');
-        parent::json ($list);
+        return parent::json ($list);
     }
 }
 ?>

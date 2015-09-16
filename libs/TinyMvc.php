@@ -132,24 +132,30 @@ class TinyMvc {
         $this->controller = isset ($splits[0]) && !empty ($splits[0]) ? strtolower (array_shift ($splits)) : $this->config['defaultController'];
         $this->action = isset ($splits[0]) && !empty ($splits[0]) ? strtolower (array_shift ($splits)) : $this->config['defaultAction'];
         $this->params = array_map ("urldecode", array_values ($splits));
+        $actionFound = false;
 
         // execute controller handler via class if exists or a function
         $controllerClassName = $this->controller . "Controller";
         if (class_exists ($controllerClassName, 1)) {
             $controller = new $controllerClassName;
-            if ($controller->__action ($this->action, $this->params))
-                return;
+            if ($actionFound = is_callable (Array ($controller, $this->action)))
+                $reply = call_user_func_array (array ($controller, $this->action), $this->params);
         }
 
-        $functionName = "action_" . $this->controller ."_". $this->action;
-        if (function_exists ($functionName)) {
-            call_user_func_array ($functionName, $this->params);
-            return;
+        if (!$actionFound) {
+            $functionName = "action_" . $this->controller ."_". $this->action;
+            if ($actionFound = function_exists ($functionName))
+                $reply = call_user_func_array ($functionName, $this->params);
         }
 
-        $v = new View ("404");
-        $v->error = "{$this->controller}/{$this->action}";
-        $v->render ();
+        if (!$actionFound) {
+            $v = new View ("404");
+            $v->error = "{$this->controller}/{$this->action}";
+            $v->render ();
+        } else if ($reply && $reply instanceof View)
+            $reply->render();
+        else if ($reply && is_array ($reply))
+            echo json_encode ($reply);
     }
 }
 
@@ -165,27 +171,6 @@ class Controller {
      * @var Array
      */
     private $helpers = Array();
-
-    /**
-     * Internal function used by routing method to invoke needed controller action with correct params
-     * In case __error method is defined it will be called if no required $action will be found
-     *
-     * @param $action Array Method name to call
-     * @param $args Array Array of arguments to pass to the method
-     *
-     * @return boolean Execution status
-     */
-    public function __action ($action, $args) {
-        if (is_callable (Array ($this, $action))) {
-            call_user_func_array (array ($this, $action), $args);
-            return true;
-        }
-        if (is_callable (Array ($this, '__error'))) {
-            call_user_func_array(array($this, '__error'), array('error' => 'NOACTION', 'action' => $action));
-            return true;
-        }
-        return false;
-    }
 
     /**
      * Helper method to load helper libraries

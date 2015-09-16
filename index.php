@@ -13,13 +13,13 @@ $config = Array (
         'prefix' => 't_'
     ),
     'routes' => Array (
-        '^/register/(.+)' => "root/edit/\\1"
+        '^/signup.*' => "users/edit/"
     )
 );
 
 function action_root_index ($arg = null, $arg2 = null) {
-    $v = new View ("index");
-    $v->render();
+    $c = new Controller();
+    return new View ("index");
 }
 
 TinyMvc::run ($config);

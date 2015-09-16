@@ -32,15 +32,14 @@ class usersController extends crudController {
     }
 
     public function logout () {
-        session_start();
-        session_destroy();
+        $this->session->destroy();
         $this->redirect ('/users/login');
     }
 
     public function edit ($id = null) {
         if ($this->reqIs ("POST") && empty($_POST['id']))
             $_POST['password'] = md5 ($_POST['password']);
-        parent::edit ($id);
+        return parent::edit ($id);
     }
 }
 ?>

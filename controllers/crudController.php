@@ -4,12 +4,11 @@ class crudController extends Controller {
     }
     public function index () {
         $this->can ('index');
-        $v = new View (TinyMvc::App ()->controller . "/index");
-        $v->render();
+        return new View (TinyMvc::App ()->controller . "/index");
     }
 
     public function json ($list = null) {
-        $this->can ('index');
+        $this->can ('json');
         if (!$list)
             $list = new $this->modelName;
         $list = $list->ArrayBuilder()->withTotalCount();
@@ -29,14 +28,14 @@ class crudController extends Controller {
         if (isset ($_GET['sort']))
             $list->orderBy ($_GET['sort'], $_GET['order']);
 
-        echo json_encode (Array (
+        return Array (
             'rows' => $list->get(Array ($offset, $rowCount), $this->displayFields),
             'total' =>$list->totalCount 
-        ));
+        );
     }
 
     public function edit ($id = null) {
-        $this->can ('index', $id);
+        $this->can ('edit', $id);
 
         $v = new View (TinyMvc::App ()->controller . "/edit");
         if ($this->reqIs ("POST")) {
@@ -47,7 +46,7 @@ class crudController extends Controller {
 				$model = new $this->modelName ($_POST);
             }
     	    $model->save ($_POST);
-            if (!isset ($model->errors)) {
+            if (count ($model->errors) == 0) {
                 $this->flash ("Changes were saved","success");
                 $this->redirect ("/" .TinyMvc::App ()->controller. "/");
                 return;
@@ -62,7 +61,7 @@ class crudController extends Controller {
                 $item[$f] = "";
             $v->item = $item;
 		}
-        $v->render();
+        return $v;
     }
 
     public function rm ($id) {
