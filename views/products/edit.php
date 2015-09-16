@@ -2,6 +2,13 @@
 <?php $this->pageTitle = 'User properties'; ?>
 <div class="container">
     <legend>User Properties</legend>
+    <?php if ($this->errors) {
+            foreach ($this->errors as $error) { ?>
+                <div class="alert alert-danger alert-dismissible" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                     <?php e ($error)?>
+                </div>
+    <?php }}?>
     <form class="col-md-8 form-horizontal" id='paymentForm' role='form' method='POST'>
         <fieldset>
             <?php foreach ($item as $label => $value) :?>

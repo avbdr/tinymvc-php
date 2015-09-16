@@ -17,21 +17,14 @@
 class user extends Model {
     protected $dbTable = "users";
     protected $dbFields = Array (
-        'login' => Array ('text', 'required'),
-        'active' => Array ('bool'),
-        'customerId' => Array ('int'),
-        'firstName' => Array ('/[a-zA-Z0-9 ]+/'),
-        'lastName' => Array ('text'),
+        'email' => Array ('text'),
         'password' => Array ('text'),
+        'lastlogindate' => Array ('datetime'),
+        'lastloginip' => Array ('text'),
         'createdAt' => Array ('datetime'),
-        'updatedAt' => Array ('datetime'),
-        'expires' => Array ('datetime'),
-        'loginCount' => Array ('int')
+        'updatedAt' => Array ('datetime')
     );
 
     protected $timestamps = Array ('createdAt', 'updatedAt');
-    protected $relations = Array (
-        'products' => Array ("hasMany", "product", 'userid')
-    );
 }
 ?>

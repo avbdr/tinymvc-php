@@ -401,6 +401,11 @@ function a ($href, $title = null) {
  * @param $shouldEscape boolean if string should be echoed or escaped before
 */
 function e ($str, $shouldEscape = true) {
+    if (is_array ($str)) {
+        $k = key ($str);
+        $str = $k . " " . $str[$k];
+    }
+
     if ($shouldEscape)
         echo htmlspecialchars ($str);
     else

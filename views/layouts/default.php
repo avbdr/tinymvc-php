@@ -7,6 +7,8 @@
     <title><?php e ($pageTitle)?></title>
 
     <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+    <script src="/assets/js/jquery.min.js"></script>
+    <script src="/assets/js/bootstrap.min.js"></script>
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -19,7 +21,5 @@
 
     <?php $this->section ('content');?>
 
-    <script src="/assets/js/jquery.min.js"></script>
-    <script src="/assets/js/bootstrap.min.js"></script>
   </body>
 </html>

@@ -1,31 +1,33 @@
 <?php $this->section ("_navbar");?>
 <?php $this->pageTitle = 'Users'; ?>
 
-<div class="container">
-    <legend><?php e ($this->pageTitle) ?></legend>
-    <?php $this->section ("_flash");?>
 
-    <table class="table table-striped table-hover table-responsive">
+<div class="container">
+    <legend><?php e ($this->pageTitle) ?> :: <a href='/users/edit'>[new]</a></legend>
+    <?php $this->section ("_flash");?>
+    <link href="/assets/css/bootstrap-table.min.css" rel="stylesheet">
+    <table data-toggle="table" id="grid" data-url="/users/json" class="table table-hover table-striped" data-pagination="true" data-side-pagination="server" data-search="true"  data-detail-view="true"  data-detail-formatter="detailFormatter">
         <thead>
             <tr>
-            <?php
-                foreach (array_keys($items[0]) as $item)
-                         echo "<td><b>{$item}</b></td>";
-            ?>
-                <td></td>
+                <th data-field="id" data-type="numeric" data-sortable="true">ID</th>
+                <th data-field="email" data-sortable="true">Login</th>
+                <th data-field="lastlogindate" class='hidden-xs' data-sortable="true">Last Login</th>
+                <th data-field="lastloginip" class='hidden-xs' data-sortable="true">IP</th>
+                <th data-field="link" data-formatter="linkFormatter" data-sortable="false">Action</th>
             </tr>
         </thead>
-        <tbody>
-            <?php
-                foreach ($items as $item) {
-                    echo "<tr>";
-                    foreach ($item as $col)
-                         echo "<td>{$col}</td>";
-                    echo "<td>" . a ("edit/" . $item['id'], "Edit") . "</td>";
-                    echo "<td>" . a ("rm/" . $item['id'], "RM") . "</td>";
-                    echo "</tr>";
-                }
-            ?>
-        </tbody>
     </table>
+    <script src="/assets/js/bootstrap-table.min.js"></script>
+    <script>
+        function detailFormatter(index, row) {
+            var html = [];
+            $.each(row, function (key, value) {
+                html.push('<p><b>' + key + ':</b> ' + value + '</p>');
+            });
+            return html.join('');
+        }
+        function linkFormatter (value, row) {
+            return "<a class='editBtn' href='/users/edit/" + row.id +"'>Edit</a> :: <a class='editBtn' href='/users/rm/" + row.id +"'>Delete</a>";
+        }
+    </script>
 </div>
