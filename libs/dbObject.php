@@ -7,7 +7,8 @@
  * @author    Alexander V. Butenko <a.butenka@gmail.com>
  * @copyright Copyright (c) 2015
  * @license   http://opensource.org/licenses/gpl-3.0.html GNU Public License
- * @version   2.1
+ * @link      http://github.com/joshcam/PHP-MySQLi-Database-Class 
+ * @version   2.2
  *
  * @method int count ()
  * @method mixed byId (string $id, mixed $fields)
@@ -139,17 +140,16 @@ class dbObject {
             $modelName = $this->relations[$name][1];
             switch ($relationType) {
                 case 'hasone':
+                    $key = isset ($this->relations[$name][2]) ? $this->relations[$name][2] : $name;
                     $obj = new $modelName;
                     $obj->returnType = $this->returnType;
-                    $this->data[$name] = $obj->byId($this->data[$name]);
-                    return $this->data[$name];
+                    return $this->data[$name] = $obj->byId($this->data[$key]);
                     break;
                 case 'hasmany':
                     $key = $this->relations[$name][2];
                     $obj = new $modelName;
                     $obj->returnType = $this->returnType;
-                    $this->data[$name] = $obj->where($key, $this->data[$this->primaryKey])->get();
-                    return $this->data[$name];
+                    return $this->data[$name] = $obj->where($key, $this->data[$this->primaryKey])->get();
                     break;
                 default:
                     break;
@@ -231,7 +231,7 @@ class dbObject {
             return false;
 
         $id = $this->db->insert ($this->dbTable, $sqlData);
-        if (!empty ($this->primaryKey))
+        if (!empty ($this->primaryKey) && !isset($this->data[$this->primaryKey]))
             $this->data[$this->primaryKey] = $id;
         $this->isNew = false;
 
@@ -270,13 +270,9 @@ class dbObject {
      * @return mixed insert id or false in case of failure
      */
     public function save ($data = null) {
-        if ($this->isNew) {
-            $id = $this->insert();
-            if (isset ($this->primaryKey))
-                $this->data[$this->primaryKey] = $id;
-            return $id;
-        }
-        return $this->update($data);
+        if ($this->isNew)
+            return $this->insert();
+        return $this->update ($data);
     }
 
     /**
@@ -317,6 +313,9 @@ class dbObject {
     private function getOne ($fields = null) {
         $this->processHasOneWith ();
         $results = $this->db->ArrayBuilder()->getOne ($this->dbTable, $fields);
+        if ($this->db->count == 0)
+            return null;
+
         $this->processArrays ($results);
         $this->data = $results;
         $this->processAllWith ($results);
@@ -336,7 +335,7 @@ class dbObject {
      *
      * @access public
      * @param integer|array $limit Array to define SQL limit in format Array ($count, $offset)
-                                   or only $count
+     *                             or only $count
      * @param array|string $fields Array or coma separated list of fields to fetch
      *
      * @return array Array of dbObjects
@@ -345,6 +344,9 @@ class dbObject {
         $objects = Array ();
         $this->processHasOneWith ();
         $results = $this->db->ArrayBuilder()->get ($this->dbTable, $limit, $fields);
+        if ($this->db->count == 0)
+            return null;
+
         foreach ($results as &$r) {
             $this->processArrays ($r);
             $this->data = $r;
@@ -558,15 +560,15 @@ class dbObject {
      * @param array $data
      */
     private function processArrays (&$data) {
-            if (isset ($this->jsonFields) && is_array ($this->jsonFields)) {
-                foreach ($this->jsonFields as $key)
-                    $data[$key] = json_decode ($data[$key]);
-            }
+        if (isset ($this->jsonFields) && is_array ($this->jsonFields)) {
+            foreach ($this->jsonFields as $key)
+                $data[$key] = json_decode ($data[$key]);
+        }
 
-            if (isset ($this->arrayFields) && is_array($this->arrayFields)) {
-                foreach ($this->arrayFields as $key)
-                    $data[$key] = explode ("|", $data[$key]);
-            }
+        if (isset ($this->arrayFields) && is_array($this->arrayFields)) {
+            foreach ($this->arrayFields as $key)
+                $data[$key] = explode ("|", $data[$key]);
+        }
     }
 
     /**
@@ -634,7 +636,7 @@ class dbObject {
             return Array();
 
         if (method_exists ($this, "preLoad"))
-            $this->preLoad ($data);
+            $this->preLoad ($this->data);
 
         if (!$this->dbFields)
             return $this->data;
@@ -687,4 +689,3 @@ class dbObject {
         spl_autoload_register ("dbObject::dbObjectAutoload");
     }
 }
-?>
