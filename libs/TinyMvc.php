@@ -12,6 +12,8 @@
 **/
 require_once ("MysqliDb.php");
 require_once ("dbObject.php");
+if (!isset ($_SERVER['SERVER_NAME']))
+    $_SERVER['SERVER_NAME'] = 'localhost';
 if (!defined ('BASEPATH'))
     define('BASEPATH', dirname (dirname (__FILE__)));
 if (!defined ('BASEURL'))
@@ -118,9 +120,10 @@ class TinyMvc {
      */
     private function processRequest () {
         // parse url
-        if (PHP_SAPI == "cli")
-            $request = ($_SERVER['argv'][1]);
-        else
+        if (PHP_SAPI == "cli") {
+            list ($request, $opts) = explode ("?", $_SERVER['argv'][1]);
+            parse_str($opts, $_GET);
+        } else
             $request = preg_replace ("~/*\?(.+)$~", "", $_SERVER['REQUEST_URI']);
         if (isset ($this->config['routes'])) {
             foreach ($this->config['routes'] as $from => $to)
@@ -216,7 +219,6 @@ class Controller {
      * @param $url string URL to redirect user to
      */
     public function redirect ($url) {
-        ob_clean ();
         header ("Location: $url");
         exit;
     }
