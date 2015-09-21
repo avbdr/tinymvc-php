@@ -5,7 +5,7 @@
 <div class="container">
     <legend><?php e ($this->pageTitle) ?> :: <a href='/users/edit'>[new]</a></legend>
     <?php $this->section ("_flash");?>
-    <link href="/assets/css/bootstrap-table.min.css" rel="stylesheet">
+    <link href="/assets/bundles/bootstrap-table/bootstrap-table.min.css" rel="stylesheet">
     <table data-toggle="table" id="grid" data-url="/users/json" class="table table-hover table-striped" data-pagination="true" data-side-pagination="server" data-search="true"  data-detail-view="true"  data-detail-formatter="detailFormatter">
         <thead>
             <tr>
@@ -17,7 +17,7 @@
             </tr>
         </thead>
     </table>
-    <script src="/assets/js/bootstrap-table.min.js"></script>
+    <script src="/assets/bundles/bootstrap-table/bootstrap-table.min.js"></script>
     <script>
         function detailFormatter(index, row) {
             var html = [];
