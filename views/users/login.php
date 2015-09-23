@@ -5,10 +5,13 @@ body {
   padding-bottom: 40px;
 }
 
+.shadow {
+    max-width: 330px;
+    box-shadow: 10px 10px 5px #888888;
+    margin: 0 auto;
+}
 .form-signin {
-  max-width: 330px;
   padding: 15px;
-  margin: 0 auto;
   background-color: #eee;
   border-radius: 5px 5px 0px 0px
 }
@@ -22,10 +25,6 @@ body {
 .form-signin .form-control {
   position: relative;
   height: auto;
-  -webkit-box-sizing: border-box;
-     -moz-box-sizing: border-box;
-          box-sizing: border-box;
-  padding: 10px;
   font-size: 16px;
 }
 .form-signin .form-control:focus {
@@ -43,6 +42,7 @@ body {
 }
 </style>
     <div class="container">
+      <div class='shadow'>
       <form class="form-signin" method=POST>
         <h2 class="form-signin-heading">Please sign in</h2>
       	<?php $this->section ("_flash");?>
@@ -57,5 +57,5 @@ body {
         </div>
         <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
       </form>
-
+      </div>
     </div> <!-- /container -->
