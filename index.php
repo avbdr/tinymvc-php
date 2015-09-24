@@ -22,5 +22,11 @@ function action_root_index ($arg = null, $arg2 = null) {
     return new View ("index");
 }
 
+function action_root_test () {
+    echo "<pre>";
+    print_r ($_POST);
+    echo "</pre>";
+}
+
 TinyMvc::run ($config);
 ?>

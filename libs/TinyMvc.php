@@ -119,6 +119,10 @@ class TinyMvc {
      *
      */
     private function processRequest () {
+        // convert json to array in request body if any
+        $input = file_get_contents ("php://input");
+        if ($input[0] == '{')
+            $_POST = json_decode ($input, true);
         // parse url
         if (PHP_SAPI == "cli") {
             list ($request, $opts) = explode ("?", $_SERVER['argv'][1]);
