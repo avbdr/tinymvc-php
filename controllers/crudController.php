@@ -1,7 +1,14 @@
 <?php
 class crudController extends Controller {
+    /*
+     * Default form values used in /edit/
+     * var $formData Array
+     */
+    public $formData = Array ();
+
     public function can ($operation, $id = null) {
     }
+
     public function index () {
         $this->can ('index');
         return new View (TinyMvc::App ()->controller . "/index");
@@ -30,7 +37,7 @@ class crudController extends Controller {
 
         return Array (
             'rows' => $list->get(Array ($offset, $rowCount), $this->displayFields),
-            'total' =>$list->totalCount 
+            'total' =>$list->totalCount
         );
     }
 
@@ -55,12 +62,12 @@ class crudController extends Controller {
         }
 		if ($id) {
             $model = new $this->modelName;
-        	$v->item = $model::ArrayBuilder()->byId($id, $this->editFields);
+            $v->item = $model::ArrayBuilder()->byId($id, $this->formFields);
 		} else {
-            foreach ($this->editFields as $f)
-                $item[$f] = "";
+            foreach ($this->formFields as $f)
+                $item[$f] = isset ($this->formData[$f]) ? $this->formData[$f] : "";
             $v->item = $item;
-		}
+        }
         return $v;
     }
 
