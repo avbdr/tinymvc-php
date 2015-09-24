@@ -26,5 +26,17 @@ class user extends Model {
     );
 
     protected $timestamps = Array ('createdAt', 'updatedAt');
+
+    public static function login ($email, $password) {
+        $user = user::where ('email', $email)
+                    ->where ('password', md5($password))
+                    ->getOne ();
+        if (!$user)
+            return false;
+        $user->lastlogindate = date("Y-m-d H:i:s");
+        $user->lastloginip = $_SERVER['REMOTE_ADDR'];
+        $user->save();
+        return $user;
+    }
 }
 ?>
