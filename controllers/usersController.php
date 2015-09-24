@@ -34,7 +34,7 @@ class usersController extends crudController {
 
     public function edit ($id = null) {
         if ($this->reqIs ("POST") && empty ($_POST['id'])) {
-            $_POST['password'] = md5 ($_POST['password']);
+            $_POST['password'] = sha1 ($this->app->config['salt'] . $_POST['password']);
         } else if ($this->reqIs ("GET") && empty ($id)) {
             $this->formData = Array (
                 'email' => 'email@company.com',

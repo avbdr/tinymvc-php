@@ -29,7 +29,7 @@ class user extends Model {
 
     public static function login ($email, $password) {
         $user = user::where ('email', $email)
-                    ->where ('password', md5($password))
+                    ->where ('password', sha1 (TinyMvc::app()->config['salt'] . $password))
                     ->getOne ();
         if (!$user)
             return false;

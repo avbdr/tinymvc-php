@@ -14,7 +14,8 @@ $config = Array (
     ),
     'routes' => Array (
         '^/signup.*' => "users/edit/"
-    )
+    ),
+    'salt' => 'test'
 );
 
 function action_root_index ($arg = null, $arg2 = null) {
