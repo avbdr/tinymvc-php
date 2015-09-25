@@ -161,9 +161,11 @@ class TinyMvc {
             $v->render ();
         } else if ($reply && $reply instanceof View)
             $reply->render();
-        else if ($reply && is_array ($reply))
+        else if ($reply && is_array ($reply)) {
+            header("Content-type: application/json");
             echo json_encode ($reply);
-        else echo $reply;
+        } else if ($reply)
+            echo $reply;
     }
 }
 
@@ -285,6 +287,12 @@ class View {
      */
     private $tpl;
 
+    /**
+     * Separate storage for error messages
+     * @var array
+     */
+    public $errors;
+
     public function __construct ($tpl) {
         $this->tpl = BASEPATH . '/views/' . $tpl . '.php';
     }
@@ -314,11 +322,14 @@ class View {
      *
      * @param $tpl string Template name
      */
-    public function section ($tpl) {
+    public function section ($tpl, $doReturn = false) {
         if ($tpl == 'content')
             echo $this->content;
-        else
+        else {
+            if ($doReturn)
+                return $this->renderToString (BASEPATH . '/views/' . $tpl . '.php');
             echo $this->renderToString (BASEPATH . '/views/' . $tpl . '.php');
+        }
     }
 
     /**
