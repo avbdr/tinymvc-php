@@ -51,7 +51,6 @@ class TinyMvc {
         }
         spl_autoload_register ("TinyMvc::autoload");
     }
-
     /**
      * Main static method to start request processing.
      *
@@ -140,6 +139,9 @@ class TinyMvc {
         $this->action = isset ($splits[0]) && !empty ($splits[0]) ? strtolower (array_shift ($splits)) : $this->config['defaultAction'];
         $this->params = array_map ("urldecode", array_values ($splits));
         $actionFound = false;
+
+        if (isset ($this->config['beforeLoad']))
+            call_user_func ($this->config['beforeLoad']);
 
         // execute controller handler via class if exists or a function
         $controllerClassName = $this->controller . "Controller";
@@ -370,6 +372,17 @@ class Model extends dbObject {
 */
 function endsWith ($haystack, $needle) {
     return substr ($haystack, -strlen($needle)) === $needle;
+}
+
+/*
+ * Search backwards starting from haystack length characters from the end
+ *
+ * @param $haystack string
+ * @param $needle work to check
+ * @return boolean
+*/
+function startsWith ($haystack, $needle) {
+    return $needle === "" || strrpos($haystack, $needle, -strlen($haystack)) !== FALSE;
 }
 
 /*
