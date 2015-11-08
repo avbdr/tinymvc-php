@@ -4,7 +4,7 @@ return Array (
         'host' => 'localhost',
         'username' => 'root',
         'password' => '',
-        'db' => 'testdb',
+        'db' => 'tinymvc',
         'prefix' => 't_'
     ),
 );

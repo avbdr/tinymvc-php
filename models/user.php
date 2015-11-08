@@ -17,6 +17,7 @@
 class user extends Model {
     protected $dbTable = "users";
     protected $dbFields = Array (
+        'role' => Array ('text'),
         'email' => Array ('text'),
         'password' => Array ('text'),
         'lastlogindate' => Array ('datetime'),

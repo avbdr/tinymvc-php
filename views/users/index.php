@@ -10,6 +10,7 @@
         <thead>
             <tr>
                 <th data-field="id" data-type="numeric" data-sortable="true">ID</th>
+                <th data-field="role" data-sortable="true">Role</th>
                 <th data-field="email" data-sortable="true">Login</th>
                 <th data-field="lastlogindate" class='hidden-xs' data-sortable="true">Last Login</th>
                 <th data-field="lastloginip" class='hidden-xs' data-sortable="true">IP</th>
