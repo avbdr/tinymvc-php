@@ -1,24 +1,35 @@
 <?php
 class crudController extends Controller {
     /*
+     * Url to redirect user in case of successfull /edit/ or /rm/
+     * var $successUrl string
+     */
+    protected $successUrl;
+    /*
      * Default form values used in /edit/
      * var $formData Array
      */
     public $formData = Array ();
+    public $list = null;
+
+    public function __construct () {
+        if ($this->successUrl == null)
+            $this->successUrl = "/" . TinyMvc::App ()->controller. "/";
+    }
 
     public function can ($operation, $id = null) {
     }
 
     public function index () {
-        $this->can ('index');
+        $this->can (TinyMvc::App ()->controller . '/index');
         return new View (TinyMvc::App ()->controller . "/index");
     }
 
-    public function json ($list = null) {
-        $this->can ('json');
-        if (!$list)
-            $list = new $this->modelName;
-        $list = $list->ArrayBuilder()->withTotalCount();
+    public function json () {
+        $this->can (TinyMvc::App ()->controller . '/json');
+        if (!$this->list)
+            $this->list = new $this->modelName;
+        $list = $this->list->ArrayBuilder()->withTotalCount();
         $rowCount = isset ($_GET['limit']) ? $_GET['limit'] : 10;
         $offset = isset ($_GET['offset']) ? $_GET['offset'] : 0;
 
@@ -42,20 +53,26 @@ class crudController extends Controller {
     }
 
     public function edit ($id = null) {
-        $this->can ('edit', $id);
+        $isNew = true;
+        $this->can (TinyMvc::App ()->controller . '/edit', $id);
 
         $v = new View (TinyMvc::App ()->controller . "/edit");
         if ($this->reqIs ("POST")) {
 			if (!empty ($_POST['id'])) {
                 $model = new $this->modelName;
 	            $model  = $model::byId ($_POST['id']);
-			} else {
+                $isNew = false;
+			} else
 				$model = new $this->modelName ($_POST);
-            }
+
     	    $model->save ($_POST);
             if (count ($model->errors) == 0) {
                 $this->flash ("Changes were saved","success");
-                $this->redirect ("/" .TinyMvc::App ()->controller. "/");
+                if ($isNew && is_callable (Array ($this, "created")))
+                    call_user_func_array (array ($this, "created"), [$model]);
+                else if (!$isNew && is_callable (Array ($this, "updated")))
+                    call_user_func_array (array ($this, "updated"), [$model]);
+                $this->redirect ($this->successUrl);
                 return;
             }
             $v->errors = $model->errors;
@@ -63,6 +80,11 @@ class crudController extends Controller {
 		if ($id) {
             $model = new $this->modelName;
             $v->item = $model::ArrayBuilder()->byId($id, $this->formFields);
+            if (!$v->item) {
+                $err = new View ("404");
+                $err->render();
+                return;
+            }
 		} else {
             foreach ($this->formFields as $f)
                 $item[$f] = isset ($this->formData[$f]) ? $this->formData[$f] : "";
@@ -72,11 +94,14 @@ class crudController extends Controller {
     }
 
     public function rm ($id) {
-        $this->can ('rm', $id);
-        $u = user::byId ($id);
-        $u->delete();
+        if (!$id)
+            return;
+        $this->can (TinyMvc::App ()->controller . '/rm', $id);
+        $model = new $this->modelName;
+        $model  = $model::byId ($id);
+        $model->delete();
         $this->flash ("Changes were saved","success");
-        $this->redirect ("/" . TinyMvc::App ()->controller . "/");
+        $this->redirect ($this->successUrl);
     }
 }
 ?>
