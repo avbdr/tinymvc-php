@@ -8,9 +8,12 @@
  * @copyright Copyright (c) 2015
  * @license   http://opensource.org/licenses/gpl-3.0.html GNU Public License
  * @link      http://github.com/joshcam/PHP-MySQLi-Database-Class 
- * @version   2.2
+ * @version   2.6-master
  *
  * @method int count ()
+ * @method dbObject ArrayBuilder()
+ * @method dbObject JsonBuilder()
+ * @method dbObject ObjectBuilder()
  * @method mixed byId (string $id, mixed $fields)
  * @method mixed get (mixed $limit, mixed $fields)
  * @method mixed getOne (mixed $fields)
@@ -77,13 +80,13 @@ class dbObject {
      *
      * @var int
      */
-    public $pageLimit = 20;
+    public static $pageLimit = 20;
     /**
      * Variable that holds total pages count of last paginate() query
      *
      * @var int
      */
-    public $totalPages = 0;
+    public static $totalPages = 0;
     /**
      * An array that holds insert/update/select errors
      *
@@ -181,10 +184,9 @@ class dbObject {
      *
      * @return dbObject
      */
-    public static function JsonBuilder () {
-        $obj = new static;
-        $obj->returnType = 'Json';
-        return $obj;
+    private function JsonBuilder () {
+        $this->returnType = 'Json';
+        return $this;
     }
 
     /**
@@ -192,10 +194,9 @@ class dbObject {
      *
      * @return dbObject
      */
-    public static function ArrayBuilder () {
-        $obj = new static;
-        $obj->returnType = 'Array';
-        return $obj;
+    private function ArrayBuilder () {
+        $this->returnType = 'Array';
+        return $this;
     }
 
     /**
@@ -204,8 +205,9 @@ class dbObject {
      *
      * @return dbObject
      */
-    public static function ObjectBuilder () {
-        return new static;
+    private function ObjectBuilder () {
+        $this->returnType = 'Object';
+        return $this;
     }
 
     /**
@@ -231,7 +233,7 @@ class dbObject {
             return false;
 
         $id = $this->db->insert ($this->dbTable, $sqlData);
-        if (!empty ($this->primaryKey) && !isset($this->data[$this->primaryKey]))
+        if (!empty ($this->primaryKey) && empty ($this->data[$this->primaryKey]))
             $this->data[$this->primaryKey] = $id;
         $this->isNew = false;
 
@@ -297,7 +299,7 @@ class dbObject {
      *
      * @return dbObject|array
      */
-    private function byId ($id, $fields = null) {
+    protected function byId ($id, $fields = null) {
         $this->db->where (MysqliDb::$prefix . $this->dbTable . '.' . $this->primaryKey, $id);
         return $this->getOne ($fields);
     }
@@ -310,7 +312,7 @@ class dbObject {
      *
      * @return dbObject
      */
-    private function getOne ($fields = null) {
+    protected function getOne ($fields = null) {
         $this->processHasOneWith ();
         $results = $this->db->ArrayBuilder()->getOne ($this->dbTable, $fields);
         if ($this->db->count == 0)
@@ -340,7 +342,7 @@ class dbObject {
      *
      * @return array Array of dbObjects
      */
-    private function get ($limit = null, $fields = null) {
+    protected function get ($limit = null, $fields = null) {
         $objects = Array ();
         $this->processHasOneWith ();
         $results = $this->db->ArrayBuilder()->get ($this->dbTable, $limit, $fields);
@@ -409,9 +411,11 @@ class dbObject {
      *
      * @return int
      */
-    private function count () {
+    protected function count () {
         $res = $this->db->ArrayBuilder()->getValue ($this->dbTable, "count(*)");
-        return $res['cnt'];
+        if (!$res)
+            return 0;
+        return $res;
     }
 
     /**
@@ -423,10 +427,10 @@ class dbObject {
      * @return array
      */
     private function paginate ($page, $fields = null) {
-        $offset = $this->pageLimit * ($page - 1);
+        $offset = self::$pageLimit * ($page - 1);
         $this->db->withTotalCount();
-        $results = $this->get (Array ($this->pageLimit, $offset), $fields);
-        $this->totalPages = round ($this->db->totalCount / $this->pageLimit);
+        $results = $this->get (Array ($offset, self::$pageLimit), $fields);
+        self::$totalPages = round ($this->db->totalCount / self::$pageLimit);
 
         return $results;
     }
@@ -607,6 +611,9 @@ class dbObject {
                     break;
                 case "int":
                     $regexp = "/^[0-9]*$/";
+                    break;
+                case "double":
+                    $regexp = "/^[0-9\.]*$/";
                     break;
                 case "bool":
                     $regexp = '/^[yes|no|0|1|true|false]$/i';

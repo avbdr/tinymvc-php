@@ -10,7 +10,7 @@
  * @copyright Copyright (c) 2010
  * @license   http://opensource.org/licenses/gpl-3.0.html GNU Public License
  * @link      http://github.com/joshcam/PHP-MySQLi-Database-Class 
- * @version   2.4
+ * @version   2.6-master
  **/
 class MysqliDb
 {
@@ -57,11 +57,17 @@ class MysqliDb
      */
     protected $_join = array();
     /**
-     * An array that holds where conditions 'fieldname' => 'value'
+     * An array that holds where conditions
      *
      * @var array
      */
     protected $_where = array();
+    /**
+     * An array that holds having conditions
+     *
+     * @var array
+     */
+    protected $_having = array();
     /**
      * Dynamic type list for order by condition value
      */
@@ -151,6 +157,12 @@ class MysqliDb
      * @var boolean
      */
     protected $_lockInShareMode = false;
+
+    /**
+     * Key field for Map()'ed result array
+     * @var string
+     */
+    protected $_mapKey = null;
 
     /**
      * Variables for query execution tracing
@@ -253,6 +265,7 @@ class MysqliDb
             $this->trace[] = array ($this->_lastQuery, (microtime(true) - $this->traceStartQ) , $this->_traceGetCaller());
 
         $this->_where = array();
+        $this->_having = array();
         $this->_join = array();
         $this->_orderBy = array();
         $this->_groupBy = array();
@@ -266,6 +279,7 @@ class MysqliDb
         $this->_tableName = '';
         $this->_lastInsertId = null;
         $this->_updateColumns = null;
+        $this->_mapKey = null;
     }
 
     /**
@@ -335,6 +349,7 @@ class MysqliDb
         }
 
         $stmt->execute();
+        $this->count = $stmt->affected_rows;
         $this->_stmtError = $stmt->error;
         $this->_lastQuery = $this->replacePlaceHolders ($this->_query, $params);
         $res = $this->_dynamicBindResults($stmt);
@@ -673,6 +688,45 @@ class MysqliDb
     {
         return $this->where ($whereProp, $whereValue, $operator, 'OR');
     }
+
+    /*
+     * This method allows you to specify multiple (method chaining optional) AND HAVING statements for SQL queries.
+     *
+     * @uses $MySqliDb->having('SUM(tags) > 10')
+     *
+     * @param string $havingProp  The name of the database field.
+     * @param mixed  $havingValue The value of the database field.
+     *
+     * @return MysqliDb
+     */
+    public function having($havingProp, $havingValue = null, $operator = null)
+    {
+        if ($operator)
+            $havingValue = Array ($operator => $havingValue);
+
+        $this->_having[] = Array ("AND", $havingValue, $havingProp);
+        return $this;
+    }
+
+    /**
+     * This method allows you to specify multiple (method chaining optional) OR HAVING statements for SQL queries.
+     *
+     * @uses $MySqliDb->orHaving('SUM(tags) > 10')
+     *
+     * @param string $havingProp  The name of the database field.
+     * @param mixed  $havingValue The value of the database field.
+     *
+     * @return MysqliDb
+     */
+    public function orHaving($havingProp, $havingValue = null, $operator = null)
+    {
+        if ($operator)
+            $havingValue = Array ($operator => $havingValue);
+
+        $this->_having[] = Array ("OR", $havingValue, $havingProp);
+        return $this;
+    }
+
     /**
      * This method allows you to concatenate joins for the final SQL statement.
      *
@@ -713,7 +767,7 @@ class MysqliDb
     {
         $allowedDirection = Array ("ASC", "DESC");
         $orderbyDirection = strtoupper (trim ($orderbyDirection));
-        $orderByField = preg_replace ("/[^-a-z0-9\.\(\),_`\*]+/i",'', $orderByField);
+        $orderByField = preg_replace ("/[^-a-z0-9\.\(\),_`\*\'\"]+/i",'', $orderByField);
 
         // Add table prefix to orderByField if needed.
         //FIXME: We are adding prefix only if table is enclosed into `` to distinguish aliases
@@ -903,8 +957,9 @@ class MysqliDb
     {
         $this->_buildJoin();
         $this->_buildInsertQuery ($tableData);
-        $this->_buildWhere();
+        $this->_buildCondition('WHERE', $this->_where);
         $this->_buildGroupBy();
+        $this->_buildCondition('HAVING', $this->_having);
         $this->_buildOrderBy();
         $this->_buildLimit ($numRows);
         $this->_buildOnDuplicate($tableData);
@@ -998,7 +1053,10 @@ class MysqliDb
                 }
             }
             $this->count++;
-            array_push ($results, $x);
+            if ($this->_mapKey)
+                $results[$row[$this->_mapKey]] = count ($row) > 2 ? $x : end ($x);
+            else
+                array_push ($results, $x);
         }
         if ($shouldStoreResult)
             $stmt->free_result();
@@ -1094,7 +1152,15 @@ class MysqliDb
             if ($this->_lastInsertId)
                 $this->_query .= $this->_lastInsertId . "=LAST_INSERT_ID (".$this->_lastInsertId."), ";
 
-            $this->_buildDataPairs ($tableData, $this->_updateColumns, false);
+            foreach ($this->_updateColumns as $key => $val) {
+                // skip all params without a value
+                if (is_numeric ($key)) {
+                    $this->_updateColumns[$val] = '';
+                    unset ($this->_updateColumns[$key]);
+                } else
+                    $tableData[$key] = $val;
+            }
+            $this->_buildDataPairs ($tableData, array_keys ($this->_updateColumns), false);
         }
     }
 
@@ -1121,14 +1187,14 @@ class MysqliDb
     /**
      * Abstraction method that will build the part of the WHERE conditions
      */
-    protected function _buildWhere () {
-        if (empty ($this->_where))
+    protected function _buildCondition ($operator, &$conditions) {
+        if (empty ($conditions))
             return;
 
         //Prepare the where portion of the query
-        $this->_query .= ' WHERE';
+        $this->_query .= ' ' . $operator;
 
-        foreach ($this->_where as $cond) {
+        foreach ($conditions as $cond) {
             list ($concat, $varName, $operator, $val) = $cond;
             $this->_query .= " " . $concat ." " . $varName;
 
@@ -1239,8 +1305,10 @@ class MysqliDb
     {
         if ($this->isSubQuery)
             return;
-        if ($this->_mysqli)
+        if ($this->_mysqli) {
             $this->_mysqli->close();
+            $this->_mysqli = null;
+        }
     }
 
     /**
@@ -1272,6 +1340,9 @@ class MysqliDb
     protected function replacePlaceHolders ($str, $vals) {
         $i = 1;
         $newStr = "";
+
+        if (empty ($vals))
+            return $str;
 
         while ($pos = strpos ($str, "?")) {
             $val = $vals[$i++];
@@ -1517,5 +1588,17 @@ class MysqliDb
         $this->where ('table_name', $tables, 'IN');
         $this->get ('information_schema.tables', $count);
         return $this->count == $count;
+    }
+
+    /**
+     * Return result as an associative array with $idField field value used as a record key
+     *
+     * @param String $idField field name to use for a mapped element key
+     *
+     * @return Array Returns an array($k => $v) if get(.."param1, param2"), array ($k => array ($v, $v)) otherwise
+     */
+    public function map ($idField) {
+        $this->_mapKey = $idField;
+        return $this;
     }
 } // END class
