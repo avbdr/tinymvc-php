@@ -43,12 +43,13 @@ class TinyMvc {
      */
     public function __construct ($config = Array()) {
         TinyMvc::$self = $this;
-        $this->readConfig ($config);
+        $this->configure ($config);
         if (isset ($this->config['db'])) {
             $this->db = new MysqliDb ($this->config['db']);
             dbObject::autoload (BASEPATH . "/models/");
         }
     }
+
     /**
      * Main static method to start request processing.
      *
@@ -78,7 +79,7 @@ class TinyMvc {
      *
      * @param Array $config
      */
-    private function readConfig ($config = Array()) {
+    private function configure ($config = Array()) {
         $this->config = array_merge ($this->config, $config);
         $hostCfg = BASEPATH . "/config." . $_SERVER['SERVER_NAME'] . ".php";
         if (!file_exists ($hostCfg))
