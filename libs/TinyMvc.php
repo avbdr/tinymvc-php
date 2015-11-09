@@ -385,31 +385,6 @@ function startsWith ($haystack, $needle) {
 }
 
 /*
- * Quick Url Builder
- *
- * @param $url string
-*/
-function u ($url = '/') {
-    $urlP = explode ("/", $url);
-    if (!empty ($urlP[0]))
-        $urlP = array_merge (Array ("/" . TinyMvc::app ()->controller), $urlP);
-
-    return implode ("/", $urlP);
-}
-
-/*
- * Quick Link builder
- *
- * @param $href string Link URL
- * @param $title string Link title
-*/
-function a ($href, $title = null) {
-    if (!$title)
-        $title = $href;
-    return '<a href="' . u ($href). "\">{$title}</a>";
-}
-
-/*
  * Quick echo +  htmlspecialchars helper
  *
  * @param $str Echo string
