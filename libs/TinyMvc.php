@@ -363,10 +363,10 @@ class Model extends dbObject {
 }
 
 /*
- * Convinience function to check if string ends with a $needle
+ * Convenience function to check if string ends with a $needle
  *
  * @param $haystack string
- * @param $needle work to check
+ * @param $needle word to check
  * @return boolean
 */
 function endsWith ($haystack, $needle) {
