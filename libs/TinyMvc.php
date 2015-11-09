@@ -10,8 +10,7 @@
  * @version   1.0
  *
 **/
-require_once ("MysqliDb.php");
-require_once ("dbObject.php");
+spl_autoload_register ("TinyMvc::autoload");
 if (!isset ($_SERVER['SERVER_NAME']))
     $_SERVER['SERVER_NAME'] = 'localhost';
 if (!defined ('BASEPATH'))
@@ -49,7 +48,6 @@ class TinyMvc {
             $this->db = new MysqliDb ($this->config['db']);
             dbObject::autoload (BASEPATH . "/models/");
         }
-        spl_autoload_register ("TinyMvc::autoload");
     }
     /**
      * Main static method to start request processing.
@@ -103,7 +101,7 @@ class TinyMvc {
             $path = BASEPATH . "/helpers/";
         else
             $path = BASEPATH . "/libs/";
-        $filename = $path . $classname .".php";
+        echo $filename = $path . str_replace ('\\', DIRECTORY_SEPARATOR, $classname) .".php";
         if (!file_exists ($filename))
             return false;
         include ($filename);
@@ -201,11 +199,11 @@ class Controller {
         $lkey = strtolower ($key);
         if ($lkey == 'db')
             return TinyMvc::app()->db;
-        else if ($lkey == 'app')
+        if ($lkey == 'app')
             return TinyMvc::app();
-        else if (endsWith ($lkey, 'helper'))
+        if (endsWith ($lkey, 'helper'))
             return $this->loadHelper ($key);
-        else if ($lkey == 'session')
+        if ($lkey == 'session')
             return $this->loadHelper ('sessionHelper');
         return null;
     }

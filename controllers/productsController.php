@@ -9,9 +9,9 @@ class productsController extends crudController {
             $this->redirect ('/users/login');
     }
 
-    public function json ($list = null) {
-        $list = product::join('user');
-        return parent::json ($list);
+    public function json () {
+        $this->list = product::join('user');
+        return parent::json ();
     }
 }
 ?>
