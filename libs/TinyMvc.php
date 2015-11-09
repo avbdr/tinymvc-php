@@ -101,7 +101,7 @@ class TinyMvc {
             $path = BASEPATH . "/helpers/";
         else
             $path = BASEPATH . "/libs/";
-        echo $filename = $path . str_replace ('\\', DIRECTORY_SEPARATOR, $classname) .".php";
+        $filename = $path . str_replace ('\\', DIRECTORY_SEPARATOR, $classname) .".php";
         if (!file_exists ($filename))
             return false;
         include ($filename);
