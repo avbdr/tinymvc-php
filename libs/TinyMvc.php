@@ -430,6 +430,7 @@ function e ($str, $shouldEscape = true) {
 function logger () {
     $args = func_get_args ();
     $verb = strtoupper (array_shift ($args));
+    $args[0] = is_array ($args[0]) ? print_r ($args[0], true) : $args[0];
     $args[0] = date ('Y-m-d H:i:s') . " " . $verb . " " . $args[0] . "\n";
     foreach ($args as $k => $v)
         if (is_array ($v) || is_object ($v))
