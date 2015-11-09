@@ -374,17 +374,6 @@ function endsWith ($haystack, $needle) {
 }
 
 /*
- * Search backwards starting from haystack length characters from the end
- *
- * @param $haystack string
- * @param $needle work to check
- * @return boolean
-*/
-function startsWith ($haystack, $needle) {
-    return $needle === "" || strrpos($haystack, $needle, -strlen($haystack)) !== FALSE;
-}
-
-/*
  * Quick echo +  htmlspecialchars helper
  *
  * @param $str Echo string
