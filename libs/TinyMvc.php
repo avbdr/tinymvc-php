@@ -355,10 +355,18 @@ class View {
  *
  * @var $app TinyMvc instance shortcut
 */
-class Model extends dbObject {
-    public function __construct ($data = null) {
-        $this->app = TinyMvc::app();
-        parent::__construct ($data);
+if (class_exists (dbObject)) {
+    class Model extends dbObject {
+        public function __construct ($data = null) {
+            $this->app = TinyMvc::app();
+            parent::__construct ($data);
+        }
+    }
+} else {
+    class Model {
+        public function __construct ($data = null) {
+            $this->app = TinyMvc::app();
+        }
     }
 }
 
