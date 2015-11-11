@@ -116,11 +116,12 @@ class TinyMvc {
      * If it also wont be found, error page will be displayed
      *
      */
-    private function processRequest () {
-        // convert json to array in request body if any
+    private function parseRequest () {
+        // convert json to array in request body if found
         $input = file_get_contents ("php://input");
         if (isset ($input[0]) && ($input[0] == '{' || $input[0] == '['))
             $_POST = json_decode ($input, true);
+
         // parse url
         if (PHP_SAPI == "cli") {
             list ($request, $opts) = explode ("?", $_SERVER['argv'][1]);
@@ -137,7 +138,28 @@ class TinyMvc {
         $this->controller = isset ($splits[0]) && !empty ($splits[0]) ? strtolower (array_shift ($splits)) : $this->config['defaultController'];
         $this->action = isset ($splits[0]) && !empty ($splits[0]) ? strtolower (array_shift ($splits)) : $this->config['defaultAction'];
         $this->params = array_map ("urldecode", array_values ($splits));
+
+    }
+
+    private function displayReply ($reply, $actionFound) {
+        if (!$actionFound) {
+            $v = new View ("404");
+            $v->error = "{$this->controller}/{$this->action}";
+            $v->render ();
+        } else if ($reply && $reply instanceof View)
+            $reply->render();
+        else if ($reply && is_array ($reply)) {
+            header ("Content-type: application/json");
+            echo json_encode ($reply);
+        } else if ($reply)
+            echo $reply;
+    }
+
+    private function processRequest () {
         $actionFound = false;
+        $reply = '';
+
+        $this->parseRequest ();
 
         if (isset ($this->config['beforeLoad']))
             call_user_func ($this->config['beforeLoad']);
@@ -156,17 +178,7 @@ class TinyMvc {
                 $reply = call_user_func_array ($functionName, $this->params);
         }
 
-        if (!$actionFound) {
-            $v = new View ("404");
-            $v->error = "{$this->controller}/{$this->action}";
-            $v->render ();
-        } else if ($reply && $reply instanceof View)
-            $reply->render();
-        else if ($reply && is_array ($reply)) {
-            header("Content-type: application/json");
-            echo json_encode ($reply);
-        } else if ($reply)
-            echo $reply;
+        $this->displayReply ($reply, $actionFound);
     }
 }
 
@@ -339,8 +351,10 @@ class View {
      * @param $isParticle bool If layout should be included
      */
     public function render ($isParticle = false) {
-        $session = new sessionHelper ();
-        $this->flash = $session->flash ();
+        if (class_exists ('sessionHelper', 1)) {
+            $session = new sessionHelper ();
+            $this->flash = $session->flash ();
+        }
         $this->content = $this->renderToString ($this->tpl);
         if ($isParticle || empty ($this->layout)) {
             echo $this->content;
@@ -355,7 +369,7 @@ class View {
  *
  * @var $app TinyMvc instance shortcut
 */
-if (class_exists (dbObject)) {
+if (class_exists ("dbObject")) {
     class Model extends dbObject {
         public function __construct ($data = null) {
             $this->app = TinyMvc::app();
