@@ -438,6 +438,6 @@ function logger () {
             $args[$k] = print_r ($v, true);
     $verb = strtoupper (array_shift ($args));
     $args[0] = date ('Y-m-d H:i:s') . " " . $verb . " " . $args[0] . "\n";
-    $status = file_put_contents ($log, call_user_func_array ('sprintf', $args), FILE_APPEND);
+    file_put_contents ($log, call_user_func_array ('sprintf', $args), FILE_APPEND);
 }
 ?>
