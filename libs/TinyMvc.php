@@ -117,17 +117,23 @@ class TinyMvc {
      *
      */
     private function parseRequest () {
+        $request = "";
         // convert json to array in request body if found
         $input = file_get_contents ("php://input");
         if (isset ($input[0]) && ($input[0] == '{' || $input[0] == '['))
             $_POST = json_decode ($input, true);
 
         // parse url
-        if (PHP_SAPI == "cli") {
-            list ($request, $opts) = explode ("?", $_SERVER['argv'][1]);
-            parse_str($opts, $_GET);
-        } else
+        if (PHP_SAPI != "cli") {
             $request = preg_replace ("~/*\?(.+)$~", "", $_SERVER['REQUEST_URI']);
+        } else if (isset ($_SERVER['argv'][1])) {
+            $request = $_SERVER['argv'][1];
+            if (strchr ($request, '?')) {
+                list ($request, $opts) = explode ("?", $request);
+                parse_str ($opts, $_GET);
+            }
+        }
+
         if (isset ($this->config['routes'])) {
             foreach ($this->config['routes'] as $from => $to)
                 $request = preg_replace("@".$from."@", $to, $request);
@@ -138,7 +144,6 @@ class TinyMvc {
         $this->controller = isset ($splits[0]) && !empty ($splits[0]) ? strtolower (array_shift ($splits)) : $this->config['defaultController'];
         $this->action = isset ($splits[0]) && !empty ($splits[0]) ? strtolower (array_shift ($splits)) : $this->config['defaultAction'];
         $this->params = array_map ("urldecode", array_values ($splits));
-
     }
 
     private function displayReply ($reply, $actionFound) {
@@ -425,15 +430,14 @@ function e ($str, $shouldEscape = true) {
 }
 
 function logger () {
+    $log = BASEPATH . "/logs/debug.log";
     $args = func_get_args ();
-    $verb = strtoupper (array_shift ($args));
-    $args[0] = is_array ($args[0]) ? print_r ($args[0], true) : $args[0];
-    $args[0] = date ('Y-m-d H:i:s') . " " . $verb . " " . $args[0] . "\n";
+
     foreach ($args as $k => $v)
         if (is_array ($v) || is_object ($v))
-            $args[$k] = print_r ($args[$k], true);
-
-    $log = BASEPATH . "/logs/debug.log";
-    file_put_contents ($log, call_user_func_array ('sprintf', $args), FILE_APPEND);
+            $args[$k] = print_r ($v, true);
+    $verb = strtoupper (array_shift ($args));
+    $args[0] = date ('Y-m-d H:i:s') . " " . $verb . " " . $args[0] . "\n";
+    $status = file_put_contents ($log, call_user_func_array ('sprintf', $args), FILE_APPEND);
 }
 ?>
