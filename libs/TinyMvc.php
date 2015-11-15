@@ -46,7 +46,8 @@ class TinyMvc {
         $this->configure ($config);
         if (isset ($this->config['db'])) {
             $this->db = new MysqliDb ($this->config['db']);
-            dbObject::autoload (BASEPATH . "/models/");
+            if (class_exists ("dbObject"))
+                dbObject::autoload (BASEPATH . "/models/");
         }
     }
 
@@ -341,13 +342,13 @@ class View {
      * @param $tpl string Template name
      */
     public function section ($tpl, $doReturn = false) {
-        if ($tpl == 'content')
+        if ($tpl == 'content') {
             echo $this->content;
-        else {
-            if ($doReturn)
-                return $this->renderToString (BASEPATH . '/views/' . $tpl . '.php');
-            echo $this->renderToString (BASEPATH . '/views/' . $tpl . '.php');
+            return;
         }
+        if ($doReturn)
+            return $this->renderToString (BASEPATH . '/views/' . $tpl . '.php');
+        echo $this->renderToString (BASEPATH . '/views/' . $tpl . '.php');
     }
 
     /**
