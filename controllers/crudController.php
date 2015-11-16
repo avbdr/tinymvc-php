@@ -17,8 +17,7 @@ class crudController extends Controller {
             $this->successUrl = "/" . TinyMvc::App ()->controller. "/";
     }
 
-    public function can ($operation, $id = null) {
-    }
+    public function can ($operation, $id = null) {}
 
     public function index () {
         $this->can (TinyMvc::App ()->controller . '/index');
