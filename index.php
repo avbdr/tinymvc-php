@@ -23,11 +23,25 @@ function action_root_index ($arg = null, $arg2 = null) {
     return new View ("index");
 }
 
-function action_root_test () {
-    echo "<pre>";
-    print_r ($_POST);
-    echo "</pre>";
+function action_test_index () {
+    return new View ("test");
 }
+
+function action_test_json() {
+    return [
+        "page" => 1,
+        "limit" =>  10,
+        "total" => 4, 
+        'test' => [
+            ['part1' => 'hello2', 'part2' => 'world'],
+            ['part1' => 'hello', 'part2' => 'world2'],
+            ['part1' => 'hello', 'part2' => 'world3'],
+            ['part1' => 'hello', 'part2' => 'world4'],
+            ['part1' => 'hello', 'part2' => 'world5'],
+        ],
+    ];
+}
+
 
 TinyMvc::run ($config);
 ?>
